@@ -1,11 +1,12 @@
 const expect = require("expect");
 const supertest = require("supertest");
-
+const { ObjectID } = require("mongodb");
 const { app } = require("../server.js");
 const { CourtCase } = require("../models/courtCase");
 
 // Dummy data of todos.
-const cases = [{
+const newCase = [{
+            _id: new ObjectID(),
             id: 91573,
             absolute_url: "/docket/91573/kelly-v-morse/",
             date_created: "2014-10-30T06:30:40.548624Z",
@@ -17,25 +18,17 @@ const cases = [{
 // This function runs before every test case.
 beforeEach((done) => {
     CourtCase.remove({}).then(() => {  // Empties database.
-        return CourtCase.insertMany(cases) // Inserts dummy data (to ensure GET requests works).
+        return CourtCase.insertMany(newCase) // Inserts dummy data (to ensure GET requests works).
         }).then(() => done());
 });
 
 describe("POST /cases", () => {
     it("Should POST a new courtCase", (done) => {
-        const newCase = {
-            id: 001,
-            absolute_url: "url",
-            date_created: "created",
-            date_modified: "modified",
-            resource_uri: "uri",
-            case_name: "name"
-        }
 
         // Using supertest...
         supertest(app)
             .post("/cases") // Post request to the /todos URL
-            .send(newCase)
+            .send(newCase[0])
             .expect(200)
             .expect((res) => {
                 expect(res.body.id).toBeA('number');
@@ -48,14 +41,13 @@ describe("POST /cases", () => {
                 if (err){
                    return done(err);
                 }
-                CourtCase.find({id: newCase.id}).then((cases) => {
-                    expect(cases.length).toBe(1);
-                    expect(cases[0].id).toBe(newCase.id);
-                    expect(cases[0].absolute_url).toBe(newCase.absolute_url);
-                    expect(cases[0].date_created).toBe(newCase.date_created);
-                    expect(cases[0].date_modified).toBe(newCase.date_modified);
-                    expect(cases[0].resource_uri).toBe(newCase.resource_uri);
-                    expect(cases[0].case_name).toBe(newCase.case_name);
+                CourtCase.findById(newCase[0]._id).then((the_case) => {
+                    expect(the_case.id).toBe(newCase[0].id);
+                    expect(the_case.absolute_url).toBe(newCase[0].absolute_url);
+                    expect(the_case.date_created).toBe(newCase[0].date_created);
+                    expect(the_case.date_modified).toBe(newCase[0].date_modified);
+                    expect(the_case.resource_uri).toBe(newCase[0].resource_uri);
+                    expect(the_case.case_name).toBe(newCase[0].case_name);
                     done(); // Call done to end the checks.
                 }).catch((e) => done(e));
             }) // Instead of passing done, we use a function
@@ -90,5 +82,21 @@ describe("GET /cases", () => {
                 expect(res.body.cases.length).toBe(1);
             })
             .end(done);
-    })
+    });
+
+    it("Should GET a single case", (done) => {
+        var theurl = `/cases/${newCase[0]._id.toHexString()}`
+        supertest(app)
+            .get(`/cases/${newCase[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.the_case.id).toBe(newCase[0].id);
+                expect(res.body.the_case.absolute_url).toBe(newCase[0].absolute_url);
+                expect(res.body.the_case.date_created).toBe(newCase[0].date_created);
+                expect(res.body.the_case.date_modified).toBe(newCase[0].date_modified);
+                expect(res.body.the_case.resource_uri).toBe(newCase[0].resource_uri);
+                expect(res.body.the_case.case_name).toBe(newCase[0].case_name);
+            })
+            .end(done);
+    });
 })

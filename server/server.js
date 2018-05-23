@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const { mongoose } = require("./db/mongoose");
 const { CourtCase } = require("./models/courtCase");
+const { ObjectID } = require("mongodb");
+const { databaseCheck } = require("./utils/databaseCheck");
 
 const port = 3000;
 const app = express();
@@ -38,9 +40,34 @@ app.get("/cases", (req,res) => {
 });
 
 
+app.get("/cases/:case", (req,res) => {
+    let id = req.params.case;
+    if(!ObjectID.isValid(id)){
+        return res.status(404).send(); // Pass nothing back
+    }
+
+    CourtCase.findById(id).then((the_case) => {
+        if(!the_case){
+            return res.status(404).send("Not found.");
+        }
+        res.status(200).send({
+            the_case
+        });
+    }, (e) => {
+        res.status(400).send(e);
+    })  // Returns all Cases.
+});
+
+
 app.listen(port, () => {
     console.log(`Started on port ${port}`);
 });
+
+const username = "Harrison";
+/*
+setInterval(() => {
+    databaseCheck(username);
+}, 5000)*/
 
 // Export app for testing purposes.
 module.exports = { app };
