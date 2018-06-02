@@ -5,13 +5,18 @@ const { CourtCase } = require("./models/courtCase");
 const { ObjectID } = require("mongodb");
 const { databaseCheck } = require("./utils/databaseCheck");
 
-const port = 3000;
+const port = 5000;
 const app = express();
 
 app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
 
+app.get("/api", (req,res) => {
+  res.send({ text: "Hello from Express"})
+});
+
 app.post("/cases", (req,res) => {
     // Upon a POST method to /todos Url, get the body of the request, and get the text value. Use that to create a new ccase based on our mongo model.
+
     const ccase = new CourtCase({
         resource_uri: req.body.resource_uri,
         id: req.body.id,

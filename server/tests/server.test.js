@@ -22,6 +22,18 @@ beforeEach((done) => {
         }).then(() => done());
 });
 
+describe("GET /", () => {
+    it("Should GET the homepage", (done) => {
+        supertest(app)
+            .get("/")
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.text).toBe('Hello from Express');
+            })
+            .end(done);
+    });
+});
+
 describe("POST /cases", () => {
     it("Should POST a new courtCase", (done) => {
 
