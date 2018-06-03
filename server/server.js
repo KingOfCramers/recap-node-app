@@ -10,7 +10,7 @@ const app = express();
 
 app.use(bodyParser.json()); // Middlewear. Sets our headers to JSON.
 
-app.get("/api", (req,res) => {
+app.get("/", (req,res) => {
   res.send({ text: "Hello from Express"})
 });
 
